@@ -1,0 +1,189 @@
+@page {
+  size: 80mm 50mm;
+  margin: 0;
+}
+
+.loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #eeeeee;
+  color: #111111;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+}
+
+.screen {
+  min-height: 100vh;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  background: #eeeeee;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.label {
+  box-sizing: border-box;
+  width: 80mm;
+  height: 50mm;
+  padding: 3mm 4mm;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #bbbbbb;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.topRow {
+  min-height: 19mm;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 3mm;
+  padding-bottom: 2mm;
+  border-bottom: 1.5px solid #000000;
+}
+
+.brandBlock {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.02in;
+}
+
+.brand {
+  font-size: 11pt;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.labelType {
+  font-size: 8pt;
+  line-height: 1;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.lionLogo {
+  display: block;
+  width: 19mm;
+  height: 19mm;
+  object-fit: contain;
+  object-position: top right;
+  flex: 0 0 auto;
+}
+
+.orderNumber {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  font-size: 28pt;
+  line-height: 0.95;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.customerRow {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.08in;
+  padding-bottom: 0.025in;
+}
+
+.firstName {
+  min-width: 0;
+  font-size: 18pt;
+  line-height: 1;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemCount {
+  flex: 0 0 auto;
+  font-size: 10pt;
+  line-height: 1;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.checks {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 2mm;
+  border-top: 1.5px solid #000000;
+}
+
+.checkItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 2mm;
+  font-size: 10pt;
+  line-height: 1;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.checkbox {
+  box-sizing: border-box;
+  width: 4mm;
+  height: 4mm;
+  display: inline-block;
+  border: 1.5px solid #000000;
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+}
+
+.controls button {
+  padding: 10px 16px;
+  border: 1px solid #444444;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111111;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+@media print {
+  .screen {
+    width: 80mm;
+    height: 50mm;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    display: block;
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  .label {
+    width: 80mm;
+    height: 50mm;
+    margin: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .controls {
+    display: none;
+  }
+}

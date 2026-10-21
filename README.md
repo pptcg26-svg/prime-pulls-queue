@@ -16,8 +16,10 @@ The existing backend, operator controls, routes, and ordering remain in place.
   Complete, Hide, Refresh, and Print Label controls. Mutations still require
   `x-admin-pin` on the existing manual/update API routes.
 - `/overlay/queue` and admin still refresh every **2.5 seconds**. The overlay keeps
-  its last successful data during a failed poll and waits for the first successful
-  response before showing a state.
+  its last successful data during a failed poll. Its frame renders immediately,
+  with QUEUE CONNECTING before the first response and QUEUE RECONNECTING after a
+  failure. Stalled requests time out after 8 seconds so later polls can recover.
+  Admin reports queue API failures instead of presenting them as an empty queue.
 - Vercel remains the deployment target. `/print/label` is unchanged; admin now
   includes the optional initial in the name passed to the label.
 
@@ -133,13 +135,14 @@ application requirement. Tests need both ports free and do not reuse a running
 app. Build again after source changes before testing. Never deploy the `.next`
 output built with test settings; Vercel must build with its real environment.
 
-The nine tests cover 0/1/2/5/6/17 orders; current/first-row emphasis; nullable and
+The twelve tests cover 0/1/2/5/6/17 orders; current/first-row emphasis; nullable and
 missing initials; customer/billing/shipping fallbacks; long names; 999,999 items;
 mobile layout; document transparency; bounded height; valid/invalid HMACs;
 duplicate delivery; unauthorized mutations; admin manual entry, Now Ripping,
 Queue, move up/down, Complete, Hide and label opening; both pages' refresh after
-admin/webhook changes; and retention during a failed poll. PNGs are regenerated
-under ignored `test-results/` on every run.
+admin/webhook changes; retention during a failed poll; visible initial-load
+failures and recovery; timeout recovery; and admin API error reporting. PNGs are
+regenerated under ignored `test-results/` on every run.
 
 Preview screenshots use fixture orders, not live customer data. Open them directly
 on GitHub: [1 order](docs/previews/one-order.png),

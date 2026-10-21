@@ -15,25 +15,32 @@ type Order = {
 export default function QueueOverlay() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
 
   useEffect(() => {
     let active = true;
     let pending = false;
-    const controller = new AbortController();
+    let controller: AbortController | undefined;
     async function load() {
       if (pending) return;
       pending = true;
+      controller = new AbortController();
+      const timeout = setTimeout(() => controller?.abort(), 8000);
       try {
         const res = await fetch('/api/queue', { cache: 'no-store', signal: controller.signal });
-        if (!res.ok) return;
+        if (!res.ok) throw new Error('Queue request failed');
         const json = await res.json();
-        if (active && Array.isArray(json.orders)) {
+        if (!Array.isArray(json.orders)) throw new Error('Invalid queue response');
+        if (active) {
           setOrders(json.orders);
           setLoaded(true);
+          setReconnecting(false);
         }
       } catch {
         // Retain the last successful queue during a temporary network failure.
+        if (active) setReconnecting(true);
       } finally {
+        clearTimeout(timeout);
         pending = false;
       }
     }
@@ -41,7 +48,7 @@ export default function QueueOverlay() {
     const timer = setInterval(load, 2500);
     return () => {
       active = false;
-      controller.abort();
+      controller?.abort();
       clearInterval(timer);
     };
   }, []);
@@ -51,7 +58,7 @@ export default function QueueOverlay() {
 
   return (
     <main className="overlay-body">
-      {loaded && <section className="queue-panel" aria-label="Prime Pulls TCG live queue">
+      <section className="queue-panel" aria-label="Prime Pulls TCG live queue">
         <header className="queue-title">
           <svg className="queue-crest" viewBox="0 0 56 40" fill="none" aria-hidden="true">
             <path d="M7 29 3 11 16 19 18 7 25 16 28 2 31 16 38 7 40 19 53 11 49 29Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
@@ -59,7 +66,9 @@ export default function QueueOverlay() {
           </svg>
           <div className="queue-brand">PRIME PULLS<span>QUEUE</span></div>
         </header>
-        {visible.length === 0 ? (
+        {!loaded ? (
+          <div className="queue-empty" role="status">{reconnecting ? 'QUEUE RECONNECTING' : 'QUEUE CONNECTING'}</div>
+        ) : visible.length === 0 ? (
           <div className="queue-empty">QUEUE OPEN</div>
         ) : <ol className="queue-list" aria-label="Orders in queue">
           {visible.map((order, index) => {
@@ -77,7 +86,8 @@ export default function QueueOverlay() {
           })}
         </ol>}
         {moreCount > 0 && <footer className="queue-footer">+{moreCount} MORE IN QUEUE</footer>}
-      </section>}
+        {loaded && reconnecting && <div className="queue-footer" role="status">QUEUE RECONNECTING</div>}
+      </section>
     </main>
   );
 }

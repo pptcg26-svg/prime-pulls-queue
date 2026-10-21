@@ -25,6 +25,8 @@ export default function AdminPage() {
     item_count: '1'
   });
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [queueLoaded, setQueueLoaded] = useState(false);
 
   useEffect(() => {
     const p = sessionStorage.getItem('primeQueuePin') || '';
@@ -32,9 +34,17 @@ export default function AdminPage() {
   }, []);
 
   async function load() {
-    const res = await fetch('/api/queue', { cache: 'no-store' });
-    const json = await res.json();
-    setOrders(json.orders || []);
+    try {
+      const res = await fetch('/api/queue', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Unable to load queue (HTTP ${res.status}).`);
+      const json = await res.json();
+      if (!Array.isArray(json.orders)) throw new Error('Unable to load queue: invalid response.');
+      setOrders(json.orders);
+      setQueueLoaded(true);
+      setLoadError('');
+    } catch (err) {
+      setLoadError(`${err instanceof Error ? err.message : 'Unable to load queue.'} Check the deployment settings and /api/queue. Retrying automatically.`);
+    }
   }
 
   useEffect(() => {
@@ -152,10 +162,12 @@ export default function AdminPage() {
       </div>
 
       {error && (
-        <p style={{ color: '#ff6868', fontWeight: 800 }}>
+        <p role="alert" style={{ color: '#ff6868', fontWeight: 800 }}>
           {error}
         </p>
       )}
+
+      {loadError && <p role="alert" style={{ color: '#ff6868', fontWeight: 800 }}>{loadError}</p>}
 
       <section className="manual-card" style={{ marginBottom: 16 }}>
         <h2 style={{ marginTop: 0 }}>Manual Add</h2>
@@ -210,7 +222,7 @@ export default function AdminPage() {
       </section>
 
       <section className="grid">
-        {orders.length === 0 && (
+        {queueLoaded && !loadError && orders.length === 0 && (
           <div className="order-card">
             No active queue orders.
           </div>

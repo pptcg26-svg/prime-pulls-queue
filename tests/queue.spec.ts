@@ -135,3 +135,43 @@ test('legacy row without field, first-row emphasis, queue order and failed poll 
   await expect(page.locator('.queue-row')).toHaveCount(2);
   await seed(request, 0);
 });
+
+test('initial API failure is visible and recovers on the next poll', async ({ page }) => {
+  let unavailable = true;
+  await page.route('**/api/queue', route => unavailable
+    ? route.fulfill({ status: 500, json: { error: 'database unavailable' } })
+    : route.fulfill({ json: { orders: fixture(1) } }));
+  await page.goto('/overlay/queue');
+  await expect(page.locator('.queue-panel')).toBeVisible();
+  await expect(page.getByRole('status')).toHaveText('QUEUE RECONNECTING');
+  await expect(page.locator('.queue-empty')).not.toHaveText('QUEUE OPEN');
+  unavailable = false;
+  await expect(page.locator('.queue-row')).toHaveCount(1, { timeout: 7000 });
+  await expect(page.getByRole('status')).toHaveCount(0);
+});
+
+test('admin reports a queue API failure instead of showing an empty queue', async ({ page }) => {
+  await page.route('**/api/queue', route => route.fulfill({ status: 500, json: { error: 'database unavailable' } }));
+  await page.goto('/admin');
+  await page.getByPlaceholder('Admin PIN').fill('local-test-pin');
+  await page.getByRole('button', { name: 'Enter', exact: true }).click();
+  await expect(page.locator('p[role="alert"]')).toContainText('Unable to load queue (HTTP 500)');
+  await expect(page.getByText('No active queue orders.')).toHaveCount(0);
+});
+
+test('a stalled first request times out and polling can recover', async ({ page }) => {
+  let calls = 0;
+  await page.route('**/api/queue', async route => {
+    calls += 1;
+    if (calls === 1) {
+      // Leave the first request unresolved to exercise the client timeout.
+      return;
+    }
+    await route.fulfill({ json: { orders: fixture(1) } });
+  });
+  await page.goto('/overlay/queue');
+  await expect(page.getByRole('status')).toHaveText('QUEUE CONNECTING');
+  await expect(page.getByRole('status')).toHaveText('QUEUE RECONNECTING', { timeout: 9500 });
+  await expect(page.locator('.queue-row')).toHaveCount(1, { timeout: 7000 });
+  expect(calls).toBeGreaterThan(1);
+});

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { toLastInitial } from '@/lib/queueNames';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,12 @@ export async function POST(req: NextRequest) {
   const order = JSON.parse(rawBody);
   const shopify_order_id = String(order.id);
   const order_number = order.order_number ? `#${order.order_number}` : String(order.name || `#${shopify_order_id}`);
-  const first_name = String(order.customer?.first_name || order.billing_address?.first_name || order.shipping_address?.first_name || 'Guest');
+  // Preserve the existing customer → billing → shipping priority and keep
+  // both name parts tied to one person (shipping may name a different recipient).
+  const nameSource = [order.customer, order.billing_address, order.shipping_address]
+    .find(source => source?.first_name);
+  const first_name = String(nameSource?.first_name || 'Guest');
+  const last_initial = toLastInitial(nameSource?.last_name);
   const item_count = Array.isArray(order.line_items)
     ? order.line_items.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0)
     : 0;
@@ -46,6 +52,7 @@ export async function POST(req: NextRequest) {
       shopify_order_id,
       order_number,
       first_name,
+      last_initial,
       item_count,
       position,
       status: 'queued'

@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { toLastInitial } from '@/lib/queueNames';
 
 export async function POST(req: NextRequest) {
   if (!requireAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json();
   const order_number = String(body.order_number || '').trim();
   const first_name = String(body.first_name || 'Guest').trim();
+  const last_initial = toLastInitial(body.last_initial);
   const item_count = Number(body.item_count || 0);
   if (!order_number) return NextResponse.json({ error: 'Missing order number' }, { status: 400 });
 
@@ -21,6 +23,7 @@ export async function POST(req: NextRequest) {
     shopify_order_id: `manual-${Date.now()}`,
     order_number,
     first_name,
+    last_initial,
     item_count,
     position,
     status: 'queued'

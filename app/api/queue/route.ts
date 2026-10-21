@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const { data, error } = await supabaseAdmin
     .from('queue_orders')
-    .select('id, order_number, first_name, item_count, status, position, created_at')
+    .select('id, order_number, first_name, last_initial, item_count, status, position, created_at')
     .in('status', ['queued', 'now_ripping'])
     .order('status', { ascending: false })
     .order('position', { ascending: true })

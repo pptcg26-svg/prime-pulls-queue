@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { queueDisplayName } from '@/lib/queueNames';
 
 type Order = {
   id: string;
   order_number: string;
   first_name: string;
+  last_initial?: string | null;
   item_count: number;
   status: string;
   position: number;
@@ -19,6 +21,7 @@ export default function AdminPage() {
   const [manual, setManual] = useState({
     order_number: '',
     first_name: '',
+    last_initial: '',
     item_count: '1'
   });
   const [error, setError] = useState('');
@@ -52,7 +55,7 @@ export default function AdminPage() {
   function printLabel(order: Order) {
     const params = new URLSearchParams({
       order: order.order_number,
-      name: order.first_name,
+      name: queueDisplayName(order),
       items: String(order.item_count)
     });
 
@@ -104,6 +107,7 @@ export default function AdminPage() {
     setManual({
       order_number: '',
       first_name: '',
+      last_initial: '',
       item_count: '1'
     });
 
@@ -177,6 +181,15 @@ export default function AdminPage() {
               })
             }
             placeholder="First name"
+            aria-label="First name"
+          />
+
+          <input
+            value={manual.last_initial}
+            onChange={e => setManual({ ...manual, last_initial: e.target.value })}
+            placeholder="Last initial (optional)"
+            aria-label="Last initial (optional)"
+            maxLength={1}
           />
 
           <input
@@ -207,7 +220,7 @@ export default function AdminPage() {
           <div key={order.id} className="order-card">
             <div className="order-main">
               <strong>
-                {order.order_number} — {order.first_name}
+                {order.order_number} — {queueDisplayName(order)}
               </strong>
 
               <span className={`status ${order.status}`}>

@@ -10,6 +10,9 @@ create table if not exists public.queue_orders (
   updated_at timestamptz not null default now()
 );
 
+-- Also makes this bootstrap script safe for existing V1 tables.
+alter table public.queue_orders add column if not exists last_initial text;
+
 create index if not exists queue_orders_status_position_idx on public.queue_orders(status, position, created_at);
 
 create or replace function public.set_updated_at()

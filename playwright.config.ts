@@ -7,7 +7,7 @@ export default defineConfig({
   timeout: 30_000,
   use: {
     baseURL: 'http://127.0.0.1:3200',
-    viewport: { width: 520, height: 460 },
+    viewport: { width: 520, height: 600 },
     launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
       ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
       : undefined,

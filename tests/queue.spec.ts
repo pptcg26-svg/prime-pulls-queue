@@ -32,24 +32,36 @@ for (const count of [0, 1, 2, 5, 6, 17]) {
       await expect(page.locator('.queue-items').first()).toHaveText('1 ITEM');
     }
     if (count > 1) await expect(page.locator('.queue-name').nth(1)).toHaveText('Ashley');
-    if (count > 2) await expect(page.locator('.queue-items').nth(2)).toHaveText('999,999 ITEMS');
+    if (count > 2) {
+      await expect(page.locator('.queue-items').nth(2)).toHaveText('999,999 ITEMS');
+      const widths = await page.locator('.queue-name').evaluateAll(els => els.map(el => (el as HTMLElement).offsetWidth));
+      expect(new Set(widths).size).toBe(1);
+    }
     const geometry = await page.evaluate(() => {
-      const panel = document.querySelector('.queue-panel')!.getBoundingClientRect();
+      const panel = document.querySelector<HTMLElement>('.queue-panel')!;
+      const bounds = panel.getBoundingClientRect();
       const last = document.querySelector('.queue-footer') || document.querySelector('.queue-list') || document.querySelector('.queue-empty');
-      return { height: panel.height, bottomGap: panel.bottom - last!.getBoundingClientRect().bottom,
+      const content = last as HTMLElement;
+      return { height: panel.offsetHeight, bottomGap: panel.offsetHeight - content.offsetTop - content.offsetHeight,
+        bounds: { left: bounds.left, top: bounds.top, right: bounds.right, bottom: bounds.bottom },
         body: getComputedStyle(document.body).backgroundColor, html: getComputedStyle(document.documentElement).backgroundColor,
         overflow: document.documentElement.scrollWidth > innerWidth };
     });
     expect(geometry.body).toBe('rgba(0, 0, 0, 0)');
     expect(geometry.html).toBe('rgba(0, 0, 0, 0)');
     expect(geometry.bottomGap).toBeLessThan(15);
-    expect(geometry.height).toBeLessThan(count <= 1 ? 150 : count === 2 ? 210 : 430);
+    expect(geometry.height).toBeLessThan(count <= 1 ? 240 : count === 2 ? 310 : 560);
     expect(geometry.overflow).toBe(false);
+    expect(geometry.bounds.left).toBeGreaterThanOrEqual(0);
+    expect(geometry.bounds.top).toBeGreaterThanOrEqual(0);
+    expect(geometry.bounds.right).toBeLessThanOrEqual(520);
+    expect(geometry.bounds.bottom).toBeLessThanOrEqual(600);
     await page.screenshot({ path: testInfo.outputPath(`queue-${count}.png`), omitBackground: true });
-    await page.setViewportSize({ width: 320, height: 460 });
+    await page.setViewportSize({ width: 320, height: 600 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (count > 2) {
       expect(await page.locator('.queue-name').nth(2).evaluate(el => el.scrollWidth > el.clientWidth)).toBe(true);
+      expect(await page.locator('.queue-items').nth(2).evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
       const items = await page.locator('.queue-items').nth(2).boundingBox();
       expect(items!.x + items!.width).toBeLessThanOrEqual(320);
     }
@@ -174,4 +186,26 @@ test('a stalled first request times out and polling can recover', async ({ page 
   await expect(page.getByRole('status')).toHaveText('QUEUE RECONNECTING', { timeout: 9500 });
   await expect(page.locator('.queue-row')).toHaveCount(1, { timeout: 7000 });
   expect(calls).toBeGreaterThan(1);
+});
+
+
+test('left HUD faces inward with an adjustable, bounded perspective angle', async ({ page, request }) => {
+  await seed(request, 5);
+  for (const [query, angle] of [['', 12], ['?angle=0', 0], ['?angle=99', 18], ['?angle=-4', 0], ['?angle=invalid', 12]] as const) {
+    await page.goto(`/overlay/queue${query}`);
+    await expect(page.locator('.queue-row')).toHaveCount(5);
+    await expect(page.locator('.overlay-body')).toHaveCSS('--queue-tilt', `${angle}deg`);
+    const matrix = await page.locator('.queue-panel').evaluate(el => {
+      const transform = new DOMMatrixReadOnly(getComputedStyle(el).transform);
+      return { normalX: transform.m31, depth: transform.m13 };
+    });
+    if (angle > 0) {
+      // Its face normal points right, toward the center of a stream from the left.
+      expect(matrix.normalX).toBeGreaterThan(0);
+      expect(matrix.depth).toBeLessThan(0);
+    } else {
+      expect(matrix.normalX).toBe(0);
+      expect(matrix.depth).toBe(0);
+    }
+  }
 });

@@ -27,62 +27,166 @@ button.danger { border-color: var(--danger); color: var(--danger); }
 .order-main strong { color: var(--gold); font-size: 20px; }
 .status { display: inline-block; padding: 3px 8px; border: 1px solid #444; border-radius: 999px; color: var(--muted); font-size: 12px; margin-left: 8px; }
 .status.now_ripping { color: #111; background: var(--gold); border-color: var(--gold); font-weight: 800; }
-/* OBS must see transparency on the document itself, not only on <main>. */
+/* The whole OBS document stays transparent, including around the tilted frame. */
 html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
 .overlay-body {
   width: min(100%, 520px);
-  padding: 6px;
+  padding: 36px 16px 18px;
   background: transparent;
   color: #f7f9fc;
   font-variant-numeric: tabular-nums;
+  --queue-cut: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px), 0 16px);
 }
 .queue-panel {
-  padding: 0 12px 12px;
-  background: linear-gradient(150deg, rgba(7,17,41,.97), rgba(5,5,5,.96));
-  border: 1px solid #d4af37;
-  border-radius: 8px;
-  box-shadow: 0 0 6px rgba(0,168,255,.18), inset 0 1px rgba(255,200,97,.14);
+  position: relative;
+  isolation: isolate;
+  padding: 0 12px 14px;
+  transform: perspective(1200px) rotateY(var(--queue-tilt, 12deg));
+  /* On the left of the stream, the face points right toward the center.
+     The left edge stays anchored as the queue grows and shrinks. */
+  transform-origin: left center;
+  filter: drop-shadow(0 0 4px rgba(0,168,255,.5));
+}
+.queue-panel::before, .queue-panel::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  clip-path: var(--queue-cut);
+}
+.queue-panel::before {
+  inset: 0;
+  z-index: -2;
+  background: linear-gradient(130deg, #fff5c5, #d4af37 15%, #765019 27%, #ffc861 42%, #f7f9fc 50%, #a87922 54%, #d4af37 72%, #fff0a9 92%, #8f641d);
+}
+.queue-panel::after {
+  inset: 3px;
+  z-index: -1;
+  background:
+    linear-gradient(115deg, rgba(192,198,212,.08), transparent 35%),
+    linear-gradient(150deg, #071129, #050505 72%);
+  box-shadow: inset 0 0 0 1px rgba(192,198,212,.45), inset 0 0 24px rgba(0,168,255,.08);
 }
 .queue-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 6px;
-  color: #d4af37;
+  position: relative;
+  padding: 47px 8px 18px;
+  text-align: center;
 }
-.queue-crest { width: 38px; height: 30px; flex: 0 0 auto; }
-.queue-brand { font-size: 18px; font-weight: 800; letter-spacing: .16em; line-height: 1.1; }
-.queue-brand span { display: block; margin-top: 4px; font-size: 10px; letter-spacing: .36em; color: #c0c6d4; }
-.queue-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.queue-title::after {
+  content: '';
+  display: block;
+  height: 2px;
+  margin-top: 14px;
+  background: linear-gradient(90deg, transparent, #c0c6d4 15%, #ffc861 48%, #f7f9fc 52%, #c0c6d4 85%, transparent);
+  box-shadow: 0 2px 0 rgba(0,168,255,.25);
+}
+.queue-crest {
+  position: absolute;
+  top: -29px;
+  left: 50%;
+  width: 112px;
+  height: 74px;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 1px 1px #050505) drop-shadow(0 0 4px rgba(0,168,255,.65));
+}
+.queue-brand {
+  color: #c0c6d4;
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: .2em;
+  line-height: 1.15;
+  text-shadow: 0 1px 0 #fff, 0 3px 2px #050505;
+}
+.queue-brand span {
+  display: block;
+  margin-top: 3px;
+  font-size: 48px;
+  line-height: 1;
+  letter-spacing: .11em;
+  color: #ffc861;
+  background: linear-gradient(#fff6c9 8%, #ffc861 40%, #a96b19 53%, #ffe7a0 77%, #d4af37 95%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 2px 0 #6b4214) drop-shadow(0 3px 2px #050505);
+}
+.queue-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .queue-row {
+  position: relative;
+  isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(64px, auto) minmax(0, 1fr) max-content;
+  grid-template-columns: 76px minmax(0, 1fr) 110px;
   align-items: center;
-  column-gap: 12px;
   height: 56px;
   padding: 0 12px;
-  background: linear-gradient(90deg, rgba(26,31,43,.95), rgba(7,17,41,.8));
-  border: 1px solid rgba(192,198,212,.2);
-  border-left-color: rgba(0,168,255,.55);
-  border-radius: 4px;
+  clip-path: var(--queue-cut);
+  background: linear-gradient(135deg, #eef2fa, #70819a 23%, #263653 43%, #c0c6d4 72%, #00a8ff);
 }
-.queue-row.now {
-  background: linear-gradient(100deg, rgba(212,175,55,.19), rgba(26,31,43,.95));
-  border-color: #d4af37;
-  box-shadow: inset 3px 0 #ffc861;
+.queue-row::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  clip-path: var(--queue-cut);
+  background: linear-gradient(110deg, #1a1f2b, #071129 65%, #060b16);
+  box-shadow: inset 0 0 12px rgba(0,168,255,.12);
 }
-.queue-number { color: #c0c6d4; font-size: 15px; font-weight: 700; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.queue-row.now { background: linear-gradient(120deg, #fff4c2, #d4af37 23%, #fff4c2 50%, #a8741d 76%, #ffc861); }
+.queue-row.now::before {
+  inset: 2px;
+  background: linear-gradient(105deg, #453013, #1f1d17 55%, #30240f);
+  box-shadow: inset 0 0 15px rgba(255,200,97,.16);
+}
+.queue-number {
+  color: #c0c6d4;
+  padding-right: 10px;
+  font-size: 16px;
+  font-weight: 900;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .queue-row.now .queue-number { color: #ffc861; }
-.queue-name { min-width: 0; font-weight: 700; font-size: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.queue-items { text-align: right; font-weight: 700; font-size: 16px; white-space: nowrap; }
-.queue-items span { font-size: 10px; letter-spacing: .06em; color: #9aa5b5; }
-.queue-empty { padding: 8px 6px 4px; color: #c0c6d4; font-size: 12px; font-weight: 700; letter-spacing: .2em; }
-.queue-footer { padding: 12px 0 0; text-align: center; color: #9aa5b5; font-size: 11px; font-weight: 700; letter-spacing: .13em; }
+.queue-name {
+  min-width: 0;
+  padding: 6px 12px;
+  border-inline: 1px solid rgba(192,198,212,.35);
+  font-weight: 800;
+  font-size: 19px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 1px #050505;
+}
+.queue-items { padding-left: 10px; text-align: right; font-weight: 800; font-size: 16px; white-space: nowrap; }
+.queue-items span { font-size: 10px; letter-spacing: .04em; color: #c0c6d4; }
+.queue-row.now .queue-items { color: #ffe7a0; }
+.queue-empty { margin: 0; padding: 8px 6px; text-align: center; color: #c0c6d4; font-size: 12px; font-weight: 700; letter-spacing: .15em; }
+.queue-footer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 6px 0;
+  color: #c0c6d4;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+.queue-footer::before, .queue-footer::after { content: ''; height: 1px; width: 28px; background: #d4af37; }
+.queue-more-count { font-size: 18px; line-height: 1; color: #ffc861; }
 @media (max-width: 400px) {
-  .queue-panel { padding: 0 8px 8px; }
-  .queue-row { grid-template-columns: minmax(52px, auto) minmax(0, 1fr) max-content; column-gap: 8px; padding: 0 8px; }
-  .queue-number { font-size: 13px; max-width: 72px; }
-  .queue-name { font-size: 16px; }
-  .queue-items { font-size: 14px; }
+  .overlay-body { padding: 32px 10px 14px; }
+  .queue-panel { padding: 0 10px 12px; transform: perspective(1200px) rotateY(calc(var(--queue-tilt, 12deg) * .4)); }
+  .queue-title { padding-bottom: 14px; }
+  .queue-brand { font-size: 16px; }
+  .queue-brand span { font-size: 40px; }
+  .queue-row { grid-template-columns: 60px minmax(0, 1fr) 96px; padding: 0 9px; }
+  .queue-number { padding-right: 6px; font-size: 13px; max-width: 72px; }
+  .queue-name { padding-inline: 7px; font-size: 16px; }
+  .queue-items { padding-left: 6px; font-size: 14px; }
   .queue-items span { font-size: 9px; }
+  .queue-footer { gap: 6px; font-size: 10px; letter-spacing: .06em; }
+  .queue-footer::before, .queue-footer::after { width: 16px; }
 }

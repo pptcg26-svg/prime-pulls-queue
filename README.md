@@ -25,9 +25,27 @@ The existing backend, operator controls, routes, and ordering remain in place.
 
 ## V2 behavior
 
-The overlay uses a small five-point crown, navy/graphite interior, thin gold frame,
-restrained blue edge accent, silver text, and a gold current row. The center crown
-point is tallest. There are no product images or persistent lion artwork.
+The overlay follows the metallic reference: a raised five-point crown, larger
+PRIME PULLS / QUEUE header, beveled gold/silver frame, navy rows, column dividers,
+blue edge light, and a gold current row. The center crown point is tallest.
+There are no product images or persistent lion artwork.
+
+For placement on the left side of a stream, the panel uses a **12° inward turn**:
+its left edge stays anchored while the right edge recedes, so its face points
+toward the center. This is a CSS perspective transform on the whole panel; all
+names, quantities, and updates remain live HTML. No OBS distortion filter is
+required. Tune the angle in the existing overlay URL:
+
+- `/overlay/queue`: default inward perspective (12°).
+- `/overlay/queue?angle=0`: flat view.
+- `/overlay/queue?angle=8`: gentler perspective.
+- `/overlay/queue?angle=18`: strongest supported perspective.
+
+Values are limited to 0–18°; invalid values use the default. At mobile widths
+up to 400px the angle is reduced to 40% of the chosen value for readability.
+The perspective origin follows the panel's vertical center as its height changes.
+Use a **520×600** OBS browser canvas to leave room for the crown, five rows, the
+optional overflow footer and blue edge light. The unused canvas is transparent.
 
 It displays order number, first name with optional last initial, and item quantity.
 It shows up to five orders and adds `+N MORE IN QUEUE` only when necessary.
@@ -135,24 +153,28 @@ application requirement. Tests need both ports free and do not reuse a running
 app. Build again after source changes before testing. Never deploy the `.next`
 output built with test settings; Vercel must build with its real environment.
 
-The twelve tests cover 0/1/2/5/6/17 orders; current/first-row emphasis; nullable and
+The thirteen tests cover 0/1/2/5/6/17 orders; current/first-row emphasis; nullable and
 missing initials; customer/billing/shipping fallbacks; long names; 999,999 items;
 mobile layout; document transparency; bounded height; valid/invalid HMACs;
 duplicate delivery; unauthorized mutations; admin manual entry, Now Ripping,
 Queue, move up/down, Complete, Hide and label opening; both pages' refresh after
 admin/webhook changes; retention during a failed poll; visible initial-load
-failures and recovery; timeout recovery; and admin API error reporting. PNGs are
+failures and recovery; timeout recovery; admin API error reporting; inward
+perspective direction; and bounded URL angle controls. PNGs are
 regenerated under ignored `test-results/` on every run.
 
 Preview screenshots use fixture orders, not live customer data. Open them directly
 on GitHub: [1 order](docs/previews/one-order.png),
 [5 orders](docs/previews/five-orders.png),
-[17 orders](docs/previews/seventeen-orders.png).
+[17 orders](docs/previews/seventeen-orders.png),
+[flat comparison](docs/previews/flat-five-orders.png),
+and [left-side stream placement](docs/previews/left-hud-scene.png).
+The placement image uses a labeled stream-content placeholder, not a live stream.
 
 Preview descriptions at 520px canvas width:
 
-- **1 order:** compact crown/header and a single gold-emphasized row; no footer.
-- **5 orders:** header and five tightly spaced rows; only current/first is gold.
+- **1 order:** metallic crown/header and a single gold-emphasized row; no footer.
+- **5 orders:** inward-angled metallic frame and five rows; only current/first is gold.
 - **17 orders:** same five rows plus a small `+12 MORE IN QUEUE` footer.
 
 ## Exact deployment sequence
@@ -175,8 +197,8 @@ Preview descriptions at 520px canvas width:
 6. Keep Shopify's webhook topic, signing secret and destination unchanged:
    `/api/shopify/orders-paid`. **No Shopify webhook settings change is needed.**
 7. Keep the OBS Browser Source URL unchanged: **`/overlay/queue`**. The existing
-   520×360 canvas can clip five V2 rows; set the source to **520×460** to fit all five
-   plus the overflow footer. The unused canvas remains transparent; the graphic
+   520×360 or 520×460 canvas can clip the taller metallic HUD; set the source to
+   **520×600** to fit the crown, all five rows, and the overflow footer. The unused canvas remains transparent; the graphic
    itself shrinks with the queue. No custom background CSS is needed.
 
 If rolling the app back to V1, leave the additive column in place. Do not remove

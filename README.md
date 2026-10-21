@@ -141,6 +141,11 @@ Queue, move up/down, Complete, Hide and label opening; both pages' refresh after
 admin/webhook changes; and retention during a failed poll. PNGs are regenerated
 under ignored `test-results/` on every run.
 
+Preview screenshots use fixture orders, not live customer data. Open them directly
+on GitHub: [1 order](docs/previews/one-order.png),
+[5 orders](docs/previews/five-orders.png),
+[17 orders](docs/previews/seventeen-orders.png).
+
 Preview descriptions at 520px canvas width:
 
 - **1 order:** compact crown/header and a single gold-emphasized row; no footer.

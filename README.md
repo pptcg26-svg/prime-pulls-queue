@@ -20,8 +20,8 @@ The existing backend, operator controls, routes, and ordering remain in place.
   with QUEUE CONNECTING before the first response and QUEUE RECONNECTING after a
   failure. Stalled requests time out after 8 seconds so later polls can recover.
   Admin reports queue API failures instead of presenting them as an empty queue.
-- Vercel remains the deployment target. `/print/label` is unchanged; admin now
-  includes the optional initial in the name passed to the label.
+- Vercel remains the deployment target. `/print/label` prints the approved
+  80×50 mm order label, with the customer reference passed by authenticated admin.
 
 ## V2 behavior
 
@@ -93,6 +93,56 @@ Do not use the bootstrap script as a substitute for the small V2 migration on an
 existing deployment. Deploying V2 before the migration will cause queue reads and
 new inserts to fail because they reference the column.
 
+## Order labels and Shopify customer reference
+
+The approved black-and-white label puts the **order number first**, with a larger
+customer name, item count, new simplified Prime Pulls logo, a smaller customer
+reference, empty **Checked** and **Review** boxes, and handwritten **BAG ___ / ___**
+blanks. Review is a staff workflow mark; its meaning is not printed on the label.
+The existing Print Label button and automatic print dialog are preserved.
+See the [implemented label](docs/previews/label-v2-implemented.png) or print the
+[80×50 mm sample PDF](docs/previews/label-v2-print-sample.pdf); both use fictional data. Long
+names/order numbers shrink to fit and can wrap instead of silently truncating.
+
+Shopify already supplies the store customer record's `customer.id` in the existing
+paid-order webhook. No extra Shopify API token, new webhook, or app environment
+variable is needed. This is the Shopify customer record ID, not a Shop username.
+When present, the string `customer.admin_graphql_api_id` is preferred to preserve
+all digits. Numeric IDs are accepted only when they are safe JavaScript integers.
+The last eight digits become a readable reference such as **4827 1635**. The same
+customer record gets the same reference across orders. Shortened references are
+sorting aids and can collide; the order number remains the definitive check.
+
+Apply this additional, repeatable migration to the existing Supabase project:
+
+```sql
+ALTER TABLE public.queue_orders
+ADD COLUMN IF NOT EXISTS shopify_customer_id text;
+```
+
+The file is
+[`supabase/migrations/202610220001_queue_customer_id.sql`](supabase/migrations/202610220001_queue_customer_id.sql).
+The full ID is stored as text. Public `/api/queue` and OBS responses do not include
+it or the customer reference. A valid `x-admin-pin` allows admin to receive only
+the shortened reference. Responses are private/no-store and vary on the PIN
+header. The print URL carries that suffix, never the full customer ID or PIN.
+
+While the optional column is missing, paid orders still enter the queue and
+admin/labels still work, but the reference reads **Not available**. Only the
+specific missing-column error activates this fallback; other database failures
+remain errors. Apply the migration before relying on references for packing.
+
+Existing orders are not automatically backfilled: their original customer ID was
+not stored. A verified replay of an existing order's Shopify paid webhook can
+fill its missing identity after migration without changing queue status, position,
+or other order data. An already captured identity is not replaced. Orders whose
+payload has no usable customer ID, including some guest/manual orders, retain
+**Not available**. Never guess an ID from the name or order number.
+
+For the label printer select **80×50 mm**, **100% / actual size**, zero margins,
+and disable browser headers/footers. The CSS declares one 80×50 mm page. A physical
+print is still needed to confirm your printer's darkness and fine-detail handling.
+
 ## Local development
 
 Use Node.js **24** (validated with 24.19.0) and npm with the committed lockfile.
@@ -157,7 +207,7 @@ application requirement. Tests need both ports free and do not reuse a running
 app. Build again after source changes before testing. Never deploy the `.next`
 output built with test settings; Vercel must build with its real environment.
 
-The fourteen tests cover 0/1/2/5/6/17 orders; current/first-row emphasis; nullable and
+The 22 tests cover 0/1/2/5/6/17 orders; current/first-row emphasis; nullable and
 missing initials; customer/billing/shipping fallbacks; long names; 999,999 items;
 mobile layout; document transparency; bounded height; valid/invalid HMACs;
 duplicate delivery; unauthorized mutations; admin manual entry, Now Ripping,
@@ -165,7 +215,10 @@ Queue, move up/down, Complete, Hide and label opening; both pages' refresh after
 admin/webhook changes; retention during a failed poll; visible initial-load
 failures and recovery; timeout recovery; admin API error reporting; inward
 perspective direction; bounded URL angle controls; and screenshot pixel alpha
-checks for translucent fills, opaque text/frame and a transparent canvas. PNGs are
+checks for translucent fills, opaque text/frame and a transparent canvas. Label
+tests cover private customer references, missing-migration rollout, verified-replay
+backfill, large string IDs, missing IDs, admin-to-print handoff, automatic printing,
+logo fallback, long names, and single-page 80×50 mm PDF output. PNGs are
 regenerated under ignored `test-results/` on every run.
 
 Preview screenshots use fixture orders, not live customer data. Open them directly
@@ -184,8 +237,9 @@ Preview descriptions at 390px canvas width:
 
 ## Exact deployment sequence
 
-1. Apply the additive migration above to the **existing** Supabase project. Confirm
-   `last_initial` appears on `public.queue_orders`. No data backfill is required.
+1. Apply the additive migrations above to the **existing** Supabase project. Confirm
+   `last_initial` and `shopify_customer_id` appear on `public.queue_orders`. Existing
+   rows remain valid; customer references need a captured/replayed customer ID.
 2. Review this change and commit/push it to the branch connected to the existing
    Vercel project. Preserve that project's domain and deployment settings.
 3. Confirm the four existing variables are set for the relevant Vercel environment.
@@ -224,3 +278,13 @@ position-tie behavior are unchanged by this visual upgrade.
   browser validation; Playwright is the only added dependency, for development.
 - `package.json`, `package-lock.json`, `.gitignore`: test command/dependency and
   generated-output exclusions. `README.md`: setup, behavior, and deployment guide.
+
+### Label implementation files
+
+- `lib/customerReference.ts`: Shopify identity parsing, display suffix, migration detection.
+- `app/api/shopify/orders-paid/route.ts`: capture/backfill identity after HMAC verification.
+- `app/api/queue/route.ts`, `app/admin/page.tsx`: PIN-protected reference display and print handoff.
+- `app/print/label/page.tsx`, `label.module.css`: approved layout and fitting at 80×50 mm.
+- `public/branding/prime-pulls-label-mono.png`: approved-style monochrome logo.
+- `supabase/migrations/202610220001_queue_customer_id.sql`: additive identity column.
+- `tests/labels.spec.ts`, `tests/server.mjs`: isolated integration and PDF/layout checks.

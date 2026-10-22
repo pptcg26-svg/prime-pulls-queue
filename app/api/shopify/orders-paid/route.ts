@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { toLastInitial } from '@/lib/queueNames';
+import { shopifyCustomerId, isMissingCustomerIdColumn } from '@/lib/customerReference';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
     .find(source => source?.first_name);
   const first_name = String(nameSource?.first_name || 'Guest');
   const last_initial = toLastInitial(nameSource?.last_name);
+  const shopify_customer_id = shopifyCustomerId(order.customer);
   const item_count = Array.isArray(order.line_items)
     ? order.line_items.reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0)
     : 0;
@@ -46,18 +48,32 @@ export async function POST(req: NextRequest) {
     .limit(1);
   const position = ((maxRows?.[0]?.position ?? 0) as number) + 1;
 
-  const { error } = await supabaseAdmin
+  const queueOrder = {
+    shopify_order_id, order_number, first_name, last_initial,
+    item_count, position, status: 'queued'
+  };
+  let customerColumnAvailable = true;
+  let { error } = await supabaseAdmin
     .from('queue_orders')
-    .upsert({
-      shopify_order_id,
-      order_number,
-      first_name,
-      last_initial,
-      item_count,
-      position,
-      status: 'queued'
-    }, { onConflict: 'shopify_order_id', ignoreDuplicates: true });
+    .upsert({ ...queueOrder, shopify_customer_id }, { onConflict: 'shopify_order_id', ignoreDuplicates: true });
+
+  if (isMissingCustomerIdColumn(error)) {
+    // Continue feeding the queue while the additive label migration is pending.
+    customerColumnAvailable = false;
+    console.warn('Customer references require the queue_customer_id migration.');
+    ({ error } = await supabaseAdmin.from('queue_orders')
+      .upsert(queueOrder, { onConflict: 'shopify_order_id', ignoreDuplicates: true }));
+  }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (customerColumnAvailable && shopify_customer_id) {
+    // A verified replay can fill an old order's missing identity without changing
+    // its position, completion/current status, or other existing order data.
+    const { error: identityError } = await supabaseAdmin.from('queue_orders')
+      .update({ shopify_customer_id }).eq('shopify_order_id', shopify_order_id)
+      .is('shopify_customer_id', null);
+    if (identityError) return NextResponse.json({ error: identityError.message }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }

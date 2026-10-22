@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { queueDisplayName } from '@/lib/queueNames';
+import { formatCustomerReference } from '@/lib/customerReference';
 
 type Order = {
   id: string;
   order_number: string;
   first_name: string;
   last_initial?: string | null;
+  customer_ref?: string | null;
   item_count: number;
   status: string;
   position: number;
@@ -35,7 +37,7 @@ export default function AdminPage() {
 
   async function load() {
     try {
-      const res = await fetch('/api/queue', { cache: 'no-store' });
+      const res = await fetch('/api/queue', { cache: 'no-store', headers: { 'x-admin-pin': savedPin } });
       if (!res.ok) throw new Error(`Unable to load queue (HTTP ${res.status}).`);
       const json = await res.json();
       if (!Array.isArray(json.orders)) throw new Error('Unable to load queue: invalid response.');
@@ -68,6 +70,8 @@ export default function AdminPage() {
       name: queueDisplayName(order),
       items: String(order.item_count)
     });
+
+    if (order.customer_ref) params.set('customer_ref', order.customer_ref);
 
     window.open(
       `/print/label?${params.toString()}`,
@@ -243,6 +247,7 @@ export default function AdminPage() {
                 {order.item_count} item
                 {order.item_count === 1 ? '' : 's'}
               </div>
+              {order.customer_ref && <div>Customer ref: {formatCustomerReference(order.customer_ref)}</div>}
             </div>
 
             <div className="row">

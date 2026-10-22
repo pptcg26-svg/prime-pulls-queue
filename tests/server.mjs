@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 
 let rows = [];
+let customerColumnAvailable = true;
 const database = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://127.0.0.1:54329');
   let raw = '';
@@ -12,15 +13,25 @@ const database = http.createServer(async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (url.pathname === '/__seed' && req.method === 'POST') {
     rows = body;
+    customerColumnAvailable = true;
+    return res.end(JSON.stringify({ ok: true }));
+  }
+  if (url.pathname === '/__schema' && req.method === 'POST') {
+    customerColumnAvailable = body.customerColumnAvailable;
     return res.end(JSON.stringify({ ok: true }));
   }
   if (url.pathname !== '/rest/v1/queue_orders') {
     res.statusCode = 404;
     return res.end('{}');
   }
+  if (!customerColumnAvailable && (url.searchParams.get('select')?.includes('shopify_customer_id') || Object.hasOwn(body ?? {}, 'shopify_customer_id'))) {
+    res.statusCode = 400;
+    return res.end(JSON.stringify({ code: 'PGRST204', message: "Could not find the 'shopify_customer_id' column of 'queue_orders' in the schema cache" }));
+  }
   const matches = row => [...url.searchParams].every(([key, value]) => {
     if (value.startsWith('eq.')) return String(row[key]) === value.slice(3);
     if (value.startsWith('in.(')) return value.slice(4, -1).split(',').includes(String(row[key]));
+    if (value === 'is.null') return row[key] == null;
     return true;
   });
   if (req.method === 'POST') {

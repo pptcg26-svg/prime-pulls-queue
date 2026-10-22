@@ -12,6 +12,7 @@ create table if not exists public.queue_orders (
 
 -- Also makes this bootstrap script safe for existing V1 tables.
 alter table public.queue_orders add column if not exists last_initial text;
+alter table public.queue_orders add column if not exists shopify_customer_id text;
 
 create index if not exists queue_orders_status_position_idx on public.queue_orders(status, position, created_at);
 

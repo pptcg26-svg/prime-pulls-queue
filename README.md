@@ -42,9 +42,11 @@ required. Tune the angle in the existing overlay URL:
 - `/overlay/queue?angle=18`: strongest supported perspective.
 
 Values are limited to 0–18°; invalid values use the default. At mobile widths
-up to 400px the angle is reduced to 40% of the chosen value for readability.
+up to 360px the angle is reduced to 40% of the chosen value for readability.
 The perspective origin follows the panel's vertical center as its height changes.
-Use a **520×600** OBS browser canvas to leave room for the crown, five rows, the
+The overlay is capped at 390px wide, 25% narrower than its original 520px layout,
+with tighter name/item spacing and the same desktop text sizes.
+Use a **390×600** OBS browser canvas to leave room for the crown, five rows, the
 optional overflow footer and blue edge light. The unused canvas is transparent.
 
 It displays order number, first name with optional last initial, and item quantity.
@@ -171,7 +173,7 @@ on GitHub: [1 order](docs/previews/one-order.png),
 and [left-side stream placement](docs/previews/left-hud-scene.png).
 The placement image uses a labeled stream-content placeholder, not a live stream.
 
-Preview descriptions at 520px canvas width:
+Preview descriptions at 390px canvas width:
 
 - **1 order:** metallic crown/header and a single gold-emphasized row; no footer.
 - **5 orders:** inward-angled metallic frame and five rows; only current/first is gold.
@@ -198,7 +200,7 @@ Preview descriptions at 520px canvas width:
    `/api/shopify/orders-paid`. **No Shopify webhook settings change is needed.**
 7. Keep the OBS Browser Source URL unchanged: **`/overlay/queue`**. The existing
    520×360 or 520×460 canvas can clip the taller metallic HUD; set the source to
-   **520×600** to fit the crown, all five rows, and the overflow footer. The unused canvas remains transparent; the graphic
+   **390×600** to fit the crown, all five rows, and the overflow footer. The unused canvas remains transparent; the graphic
    itself shrinks with the queue. No custom background CSS is needed.
 
 If rolling the app back to V1, leave the additive column in place. Do not remove

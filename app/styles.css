@@ -30,8 +30,8 @@ button.danger { border-color: var(--danger); color: var(--danger); }
 /* The whole OBS document stays transparent, including around the tilted frame. */
 html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
 .overlay-body {
-  width: min(100%, 520px);
-  padding: 36px 16px 18px;
+  width: min(100%, 390px);
+  padding: 36px 12px 18px;
   background: transparent;
   color: #f7f9fc;
   font-variant-numeric: tabular-nums;
@@ -40,7 +40,7 @@ html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
 .queue-panel {
   position: relative;
   isolation: isolate;
-  padding: 0 12px 14px;
+  padding: 0 10px 14px;
   transform: perspective(1200px) rotateY(var(--queue-tilt, 12deg));
   /* On the left of the stream, the face points right toward the center.
      The left edge stays anchored as the queue grows and shrinks. */
@@ -114,10 +114,10 @@ html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr) 110px;
+  grid-template-columns: 68px minmax(0, 1fr) 106px;
   align-items: center;
   height: 56px;
-  padding: 0 12px;
+  padding: 0 10px;
   clip-path: var(--queue-cut);
   background: linear-gradient(135deg, #eef2fa, #70819a 23%, #263653 43%, #c0c6d4 72%, #00a8ff);
 }
@@ -149,7 +149,7 @@ html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
 .queue-row.now .queue-number { color: #ffc861; }
 .queue-name {
   min-width: 0;
-  padding: 6px 12px;
+  padding: 6px 8px;
   border-inline: 1px solid rgba(192,198,212,.35);
   font-weight: 800;
   font-size: 19px;
@@ -158,7 +158,7 @@ html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
   text-overflow: ellipsis;
   text-shadow: 0 2px 1px #050505;
 }
-.queue-items { padding-left: 10px; text-align: right; font-weight: 800; font-size: 16px; white-space: nowrap; }
+.queue-items { padding-left: 6px; text-align: right; font-weight: 800; font-size: 16px; white-space: nowrap; }
 .queue-items span { font-size: 10px; letter-spacing: .04em; color: #c0c6d4; }
 .queue-row.now .queue-items { color: #ffe7a0; }
 .queue-empty { margin: 0; padding: 8px 6px; text-align: center; color: #c0c6d4; font-size: 12px; font-weight: 700; letter-spacing: .15em; }
@@ -176,7 +176,7 @@ html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
 }
 .queue-footer::before, .queue-footer::after { content: ''; height: 1px; width: 28px; background: #d4af37; }
 .queue-more-count { font-size: 18px; line-height: 1; color: #ffc861; }
-@media (max-width: 400px) {
+@media (max-width: 360px) {
   .overlay-body { padding: 32px 10px 14px; }
   .queue-panel { padding: 0 10px 12px; transform: perspective(1200px) rotateY(calc(var(--queue-tilt, 12deg) * .4)); }
   .queue-title { padding-bottom: 14px; }

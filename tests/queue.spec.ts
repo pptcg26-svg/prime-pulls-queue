@@ -54,7 +54,7 @@ for (const count of [0, 1, 2, 5, 6, 17]) {
     expect(geometry.overflow).toBe(false);
     expect(geometry.bounds.left).toBeGreaterThanOrEqual(0);
     expect(geometry.bounds.top).toBeGreaterThanOrEqual(0);
-    expect(geometry.bounds.right).toBeLessThanOrEqual(520);
+    expect(geometry.bounds.right).toBeLessThanOrEqual(390);
     expect(geometry.bounds.bottom).toBeLessThanOrEqual(600);
     await page.screenshot({ path: testInfo.outputPath(`queue-${count}.png`), omitBackground: true });
     await page.setViewportSize({ width: 320, height: 600 });

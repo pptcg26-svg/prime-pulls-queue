@@ -27,8 +27,7 @@ button.danger { border-color: var(--danger); color: var(--danger); }
 .order-main strong { color: var(--gold); font-size: 20px; }
 .status { display: inline-block; padding: 3px 8px; border: 1px solid #444; border-radius: 999px; color: var(--muted); font-size: 12px; margin-left: 8px; }
 .status.now_ripping { color: #111; background: var(--gold); border-color: var(--gold); font-weight: 800; }
-/* The whole OBS document stays transparent, including around the tilted frame. */
-html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
+/* The overlay layout makes the document transparent before hydration. */
 .overlay-body {
   width: min(100%, 390px);
   padding: 36px 12px 18px;
@@ -36,6 +35,24 @@ html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
   color: #f7f9fc;
   font-variant-numeric: tabular-nums;
   --queue-cut: polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px), 0 16px);
+}
+.queue-panel, .queue-row {
+  --queue-border: 3px;
+  /* Cut out the center of each metallic frame instead of painting metal
+     underneath the glass. Only the border is opaque. */
+  --queue-ring: polygon(evenodd,
+    16px 0, calc(100% - 16px) 0, 100% 16px,
+    100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%,
+    0 calc(100% - 16px), 0 16px, 16px 0,
+    calc(16px + var(--queue-border)) var(--queue-border),
+    var(--queue-border) calc(16px + var(--queue-border)),
+    var(--queue-border) calc(100% - 16px - var(--queue-border)),
+    calc(16px + var(--queue-border)) calc(100% - var(--queue-border)),
+    calc(100% - 16px - var(--queue-border)) calc(100% - var(--queue-border)),
+    calc(100% - var(--queue-border)) calc(100% - 16px - var(--queue-border)),
+    calc(100% - var(--queue-border)) calc(16px + var(--queue-border)),
+    calc(100% - 16px - var(--queue-border)) var(--queue-border),
+    calc(16px + var(--queue-border)) var(--queue-border));
 }
 .queue-panel {
   position: relative;
@@ -56,6 +73,7 @@ html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
 .queue-panel::before {
   inset: 0;
   z-index: -2;
+  clip-path: var(--queue-ring);
   background: linear-gradient(130deg, #fff5c5, #d4af37 15%, #765019 27%, #ffc861 42%, #f7f9fc 50%, #a87922 54%, #d4af37 72%, #fff0a9 92%, #8f641d);
 }
 .queue-panel::after {
@@ -63,7 +81,7 @@ html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
   z-index: -1;
   background:
     linear-gradient(115deg, rgba(192,198,212,.08), transparent 35%),
-    linear-gradient(150deg, #071129, #050505 72%);
+    linear-gradient(150deg, rgba(7,17,41,.58), rgba(5,5,5,.58) 72%);
   box-shadow: inset 0 0 0 1px rgba(192,198,212,.45), inset 0 0 24px rgba(0,168,255,.08);
 }
 .queue-title {
@@ -111,6 +129,7 @@ html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
 }
 .queue-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .queue-row {
+  --queue-border: 1px;
   position: relative;
   isolation: isolate;
   display: grid;
@@ -119,22 +138,23 @@ html:has(.overlay-body), body:has(.overlay-body) { background: transparent; }
   height: 56px;
   padding: 0 10px;
   clip-path: var(--queue-cut);
-  background: linear-gradient(135deg, #eef2fa, #70819a 23%, #263653 43%, #c0c6d4 72%, #00a8ff);
+  background: linear-gradient(110deg, rgba(26,31,43,.35), rgba(7,17,41,.3) 65%, rgba(6,11,22,.35));
 }
 .queue-row::before {
   content: '';
   position: absolute;
-  inset: 1px;
+  inset: 0;
   z-index: -1;
-  clip-path: var(--queue-cut);
-  background: linear-gradient(110deg, #1a1f2b, #071129 65%, #060b16);
-  box-shadow: inset 0 0 12px rgba(0,168,255,.12);
+  clip-path: var(--queue-ring);
+  background: linear-gradient(135deg, #eef2fa, #70819a 23%, #263653 43%, #c0c6d4 72%, #00a8ff);
+  pointer-events: none;
 }
-.queue-row.now { background: linear-gradient(120deg, #fff4c2, #d4af37 23%, #fff4c2 50%, #a8741d 76%, #ffc861); }
+.queue-row.now {
+  --queue-border: 2px;
+  background: linear-gradient(105deg, rgba(69,48,19,.4), rgba(31,29,23,.3) 55%, rgba(48,36,15,.4));
+}
 .queue-row.now::before {
-  inset: 2px;
-  background: linear-gradient(105deg, #453013, #1f1d17 55%, #30240f);
-  box-shadow: inset 0 0 15px rgba(255,200,97,.16);
+  background: linear-gradient(120deg, #fff4c2, #d4af37 23%, #fff4c2 50%, #a8741d 76%, #ffc861);
 }
 .queue-number {
   color: #c0c6d4;

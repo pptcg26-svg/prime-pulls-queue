@@ -209,3 +209,46 @@ test('left HUD faces inward with an adjustable, bounded perspective angle', asyn
     }
   }
 });
+
+test('glass fills transmit the stream while frame and text remain opaque', async ({ page, request }) => {
+  await seed(request, 2);
+  await page.goto('/overlay/queue?angle=0');
+  await expect(page.locator('.queue-row')).toHaveCount(2);
+  await expect(page.locator('.overlay-body')).toHaveCSS('--queue-tilt', '0deg');
+  const samples = await page.evaluate(() => {
+    const panel = document.querySelector('.queue-panel')!.getBoundingClientRect();
+    const row = document.querySelector('.queue-row')!.getBoundingClientRect();
+    const name = document.querySelector('.queue-name')!.getBoundingClientRect();
+    return {
+      outside: { x: 0, y: innerHeight - 1 },
+      glass: { x: panel.left + 28, y: panel.top + 24 },
+      row: { x: row.left + 24, y: row.bottom - 8 },
+      frame: { x: panel.left + 1, y: panel.top + 50 },
+      name: { x: name.left + 8, y: name.top + 6, width: name.width - 16, height: name.height - 12 },
+    };
+  });
+  const png = await page.screenshot({ omitBackground: true });
+  const alpha = await page.evaluate(async ({ encoded, points }) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${encoded}`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width; canvas.height = image.height;
+    const context = canvas.getContext('2d')!;
+    context.drawImage(image, 0, 0);
+    const pixel = (point: { x: number; y: number }) => context.getImageData(Math.floor(point.x), Math.floor(point.y), 1, 1).data[3];
+    const name = context.getImageData(Math.floor(points.name.x), Math.floor(points.name.y), Math.floor(points.name.width), Math.floor(points.name.height)).data;
+    let nameMax = 0;
+    for (let i = 3; i < name.length; i += 4) nameMax = Math.max(nameMax, name[i]);
+    return { outside: pixel(points.outside), glass: pixel(points.glass), row: pixel(points.row), frame: pixel(points.frame), nameMax };
+  }, { encoded: png.toString('base64'), points: samples });
+  expect(alpha.outside).toBe(0);
+  expect(alpha.glass).toBeGreaterThan(100);
+  expect(alpha.glass).toBeLessThan(220);
+  expect(alpha.row).toBeGreaterThan(alpha.glass);
+  expect(alpha.row).toBeLessThan(245);
+  expect(alpha.frame).toBeGreaterThanOrEqual(250);
+  expect(alpha.nameMax).toBeGreaterThanOrEqual(250);
+  await page.goto('/admin');
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(7, 7, 7)');
+});

@@ -45,7 +45,9 @@ Values are limited to 0–18°; invalid values use the default. At mobile widths
 up to 360px the angle is reduced to 40% of the chosen value for readability.
 The perspective origin follows the panel's vertical center as its height changes.
 The overlay is capped at 390px wide, 25% narrower than its original 520px layout,
-with tighter name/item spacing and the same desktop text sizes.
+with tighter name/item spacing and the same desktop text sizes. The panel uses
+a roughly 58% opaque dark fill, with translucent row tints layered above it.
+The stream shows through those fills; crown, text and metallic borders stay solid.
 Use a **390×600** OBS browser canvas to leave room for the crown, five rows, the
 optional overflow footer and blue edge light. The unused canvas is transparent.
 
@@ -155,14 +157,15 @@ application requirement. Tests need both ports free and do not reuse a running
 app. Build again after source changes before testing. Never deploy the `.next`
 output built with test settings; Vercel must build with its real environment.
 
-The thirteen tests cover 0/1/2/5/6/17 orders; current/first-row emphasis; nullable and
+The fourteen tests cover 0/1/2/5/6/17 orders; current/first-row emphasis; nullable and
 missing initials; customer/billing/shipping fallbacks; long names; 999,999 items;
 mobile layout; document transparency; bounded height; valid/invalid HMACs;
 duplicate delivery; unauthorized mutations; admin manual entry, Now Ripping,
 Queue, move up/down, Complete, Hide and label opening; both pages' refresh after
 admin/webhook changes; retention during a failed poll; visible initial-load
 failures and recovery; timeout recovery; admin API error reporting; inward
-perspective direction; and bounded URL angle controls. PNGs are
+perspective direction; bounded URL angle controls; and screenshot pixel alpha
+checks for translucent fills, opaque text/frame and a transparent canvas. PNGs are
 regenerated under ignored `test-results/` on every run.
 
 Preview screenshots use fixture orders, not live customer data. Open them directly
@@ -209,7 +212,7 @@ position-tie behavior are unchanged by this visual upgrade.
 
 ## Implementation files
 
-- `app/overlay/queue/page.tsx`, `app/styles.css`: V2 graphic, dynamic height,
+- `app/overlay/layout.tsx`, `app/overlay/queue/page.tsx`, `app/styles.css`: V2 graphic, dynamic height,
   transparent document, initials, overflow count, resilient polling.
 - `lib/queueNames.ts`: normalized initial and shared display name.
 - `app/api/shopify/orders-paid/route.ts`: derive/store initial after existing HMAC.

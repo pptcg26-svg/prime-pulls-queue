@@ -30,7 +30,7 @@ button.danger { border-color: var(--danger); color: var(--danger); }
 /* The overlay layout makes the document transparent before hydration. */
 .overlay-body {
   width: min(100%, 390px);
-  padding: 36px 12px 18px;
+  padding: 12px 12px 18px;
   background: transparent;
   color: #f7f9fc;
   font-variant-numeric: tabular-nums;
@@ -86,46 +86,22 @@ button.danger { border-color: var(--danger); color: var(--danger); }
 }
 .queue-title {
   position: relative;
-  padding: 47px 8px 18px;
+  padding: 8px 8px 12px;
   text-align: center;
 }
 .queue-title::after {
   content: '';
   display: block;
   height: 2px;
-  margin-top: 14px;
+  margin-top: 8px;
   background: linear-gradient(90deg, transparent, #c0c6d4 15%, #ffc861 48%, #f7f9fc 52%, #c0c6d4 85%, transparent);
   box-shadow: 0 2px 0 rgba(0,168,255,.25);
 }
-.queue-crest {
-  position: absolute;
-  top: -29px;
-  left: 50%;
-  width: 112px;
-  height: 74px;
-  transform: translateX(-50%);
-  filter: drop-shadow(0 1px 1px #050505) drop-shadow(0 0 4px rgba(0,168,255,.65));
-}
-.queue-brand {
-  color: #c0c6d4;
-  font-size: 19px;
-  font-weight: 900;
-  letter-spacing: .2em;
-  line-height: 1.15;
-  text-shadow: 0 1px 0 #fff, 0 3px 2px #050505;
-}
-.queue-brand span {
+.queue-logo {
   display: block;
-  margin-top: 3px;
-  font-size: 48px;
-  line-height: 1;
-  letter-spacing: .11em;
-  color: #ffc861;
-  background: linear-gradient(#fff6c9 8%, #ffc861 40%, #a96b19 53%, #ffe7a0 77%, #d4af37 95%);
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  filter: drop-shadow(0 2px 0 #6b4214) drop-shadow(0 3px 2px #050505);
+  width: min(100%, 220px);
+  height: auto;
+  margin: 0 auto;
 }
 .queue-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .queue-row {
@@ -197,11 +173,8 @@ button.danger { border-color: var(--danger); color: var(--danger); }
 .queue-footer::before, .queue-footer::after { content: ''; height: 1px; width: 28px; background: #d4af37; }
 .queue-more-count { font-size: 18px; line-height: 1; color: #ffc861; }
 @media (max-width: 360px) {
-  .overlay-body { padding: 32px 10px 14px; }
+  .overlay-body { padding: 12px 10px 14px; }
   .queue-panel { padding: 0 10px 12px; transform: perspective(1200px) rotateY(calc(var(--queue-tilt, 12deg) * .4)); }
-  .queue-title { padding-bottom: 14px; }
-  .queue-brand { font-size: 16px; }
-  .queue-brand span { font-size: 40px; }
   .queue-row { grid-template-columns: 60px minmax(0, 1fr) 96px; padding: 0 9px; }
   .queue-number { padding-right: 6px; font-size: 13px; max-width: 72px; }
   .queue-name { padding-inline: 7px; font-size: 16px; }

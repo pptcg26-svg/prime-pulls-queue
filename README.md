@@ -25,10 +25,11 @@ The existing backend, operator controls, routes, and ordering remain in place.
 
 ## V2 behavior
 
-The overlay follows the metallic reference: a raised five-point crown, larger
-PRIME PULLS / QUEUE header, beveled gold/silver frame, navy rows, column dividers,
-blue edge light, and a gold current row. The center crown point is tallest.
-There are no product images or persistent lion artwork.
+The header uses the supplied transparent Prime Pulls Queue lion/crown artwork
+at `public/branding/prime-pulls-queue-header.png`, replacing the earlier generated
+crown and text. Its original colors and transparency are preserved. The queue
+keeps the beveled gold/silver frame, translucent navy rows, column dividers,
+blue edge light, and gold current row. There are no product thumbnails.
 
 For placement on the left side of a stream, the panel uses a **12° inward turn**:
 its left edge stays anchored while the right edge recedes, so its face points
@@ -231,7 +232,7 @@ The placement image uses a labeled stream-content placeholder, not a live stream
 
 Preview descriptions at 390px canvas width:
 
-- **1 order:** metallic crown/header and a single gold-emphasized row; no footer.
+- **1 order:** supplied logo header and a single gold-emphasized row; no footer.
 - **5 orders:** inward-angled metallic frame and five rows; only current/first is gold.
 - **17 orders:** same five rows plus a small `+12 MORE IN QUEUE` footer.
 

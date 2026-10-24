@@ -22,6 +22,9 @@ for (const count of [0, 1, 2, 5, 6, 17]) {
     await seed(request, count);
     await page.goto('/overlay/queue');
     await expect(page.locator('.queue-panel')).toBeVisible();
+    const logo = page.getByRole('img', { name: 'Prime Pulls Queue', exact: true });
+    await expect(logo).toBeVisible();
+    await expect.poll(() => logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
     await expect(page.locator('.queue-row')).toHaveCount(Math.min(count, 5));
     await expect(page.locator('.queue-footer')).toHaveCount(count > 5 ? 1 : 0);
     if (count > 5) await expect(page.locator('.queue-footer')).toHaveText(`+${count - 5} MORE IN QUEUE`);
@@ -50,7 +53,7 @@ for (const count of [0, 1, 2, 5, 6, 17]) {
     expect(geometry.body).toBe('rgba(0, 0, 0, 0)');
     expect(geometry.html).toBe('rgba(0, 0, 0, 0)');
     expect(geometry.bottomGap).toBeLessThan(15);
-    expect(geometry.height).toBeLessThan(count <= 1 ? 240 : count === 2 ? 310 : 560);
+    expect(geometry.height).toBeLessThan(count <= 1 ? 265 : count === 2 ? 340 : 560);
     expect(geometry.overflow).toBe(false);
     expect(geometry.bounds.left).toBeGreaterThanOrEqual(0);
     expect(geometry.bounds.top).toBeGreaterThanOrEqual(0);
